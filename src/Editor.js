@@ -350,12 +350,13 @@ class LinkEditorExample extends React.Component {
         >
           <Editor
             blockStyleFn={getBlockStyle}
-            stripPastedStyles={true}
             customStyleMap={colorStyleMap}
             editorState={this.state.editorState}
             handleKeyCommand={this.handleKeyCommand}
             onChange={this.onChange}
             ref="editor"
+            spellCheck={true}
+            stripPastedStyles={true}
           />
         </div>
         <input
