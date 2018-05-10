@@ -343,9 +343,13 @@ class LinkEditorExample extends React.Component {
           <button onMouseDown={this.removeLink}>Remove Link</button>
         </div>
         {urlInput}
-        <div style={styles.editor} onClick={this.focus}>
+        <div
+          className="RichEditor-editor"
+          style={styles.editor}
+          onClick={this.focus}
+        >
           <Editor
-            className="RichEditor-editor"
+            blockStyleFn={getBlockStyle}
             stripPastedStyles={true}
             customStyleMap={colorStyleMap}
             editorState={this.state.editorState}
@@ -362,6 +366,15 @@ class LinkEditorExample extends React.Component {
         />
       </div>
     );
+  }
+}
+
+function getBlockStyle(block) {
+  switch (block.getType()) {
+    case "blockquote":
+      return "RichEditor-blockquote";
+    default:
+      return null;
   }
 }
 
