@@ -10,15 +10,15 @@ import {
 import "./Editor.css";
 
 const BLOCK_TYPES = [
-  { label: "H1", style: "header-one" },
+  //   { label: "H1", style: "header-one" },
   //   { label: "H2", style: "header-two" },
-  //   { label: "H3", style: "header-three" },
+  { label: "Header", style: "header-three" },
   //   { label: "H4", style: "header-four" },
   //   { label: "H5", style: "header-five" },
   //   { label: "H6", style: "header-six" },
   { label: "Blockquote", style: "blockquote" },
-  { label: "UL", style: "unordered-list-item" },
-  { label: "OL", style: "ordered-list-item" }
+  { label: "List", style: "unordered-list-item" },
+  { label: "Numbered List", style: "ordered-list-item" }
   //   { label: "Code Block", style: "code-block" }
 ];
 
@@ -49,10 +49,12 @@ const INLINE_STYLES = [
   { label: "Bold", style: "BOLD" },
   { label: "Italic", style: "ITALIC" },
   { label: "Underline", style: "UNDERLINE" }
+  //   { label: "Monospace", style: "CODE" }
 ];
 
 const InlineStyleControls = props => {
-  const currentStyle = props.editorState.getCurrentInlineStyle();
+  const { editorState } = props;
+  const currentStyle = editorState.getCurrentInlineStyle();
 
   return (
     <div className="RichEditor-controls">
@@ -70,22 +72,22 @@ const InlineStyleControls = props => {
 };
 
 class StyleButton extends React.Component {
-  constructor(props) {
-    super(props);
+  constructor() {
+    super();
     this.onToggle = e => {
       e.preventDefault();
       this.props.onToggle(this.props.style);
     };
   }
+
   render() {
-    let style;
+    let className = "RichEditor-styleButton";
     if (this.props.active) {
-      style = { ...styles.styleButton, ...colorStyleMap[this.props.style] };
-    } else {
-      style = styles.styleButton;
+      className += " RichEditor-activeButton";
     }
+
     return (
-      <span style={style} onMouseDown={this.onToggle}>
+      <span className={className} onMouseDown={this.onToggle}>
         {this.props.label}
       </span>
     );
@@ -355,7 +357,7 @@ class LinkEditorExample extends React.Component {
             handleKeyCommand={this.handleKeyCommand}
             onChange={this.onChange}
             ref="editor"
-            spellCheck={true}
+            // spellCheck={true}
             stripPastedStyles={true}
           />
         </div>
