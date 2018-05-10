@@ -1,4 +1,5 @@
 import React from "react";
+import "./Editor.css";
 import {
   convertToRaw,
   CompositeDecorator,
@@ -204,7 +205,6 @@ const styles = {
     padding: 3
   },
   editor: {
-    border: "1px solid #ccc",
     cursor: "text",
     minHeight: 80,
     padding: 10
