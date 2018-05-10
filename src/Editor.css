@@ -73,5 +73,6 @@
 }
 
 .RichEditor-activeButton {
-  color: #5890ff;
+  color: black;
+  text-decoration: underline;
 }

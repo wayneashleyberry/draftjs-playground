@@ -12,8 +12,8 @@ import "./Editor.css";
 const BLOCK_TYPES = [
   //   { label: "H1", style: "header-one" },
   //   { label: "H2", style: "header-two" },
-  { label: "Header", style: "header-three" },
-  //   { label: "H4", style: "header-four" },
+  //   { label: "Header", style: "header-three" },
+  { label: "Header", style: "header-four" },
   //   { label: "H5", style: "header-five" },
   //   { label: "H6", style: "header-six" },
   { label: "Blockquote", style: "blockquote" },
