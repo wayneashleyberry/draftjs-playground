@@ -9,6 +9,61 @@ import {
   RichUtils
 } from "draft-js";
 
+const BLOCK_TYPES = [
+  { label: "H1", style: "header-one" },
+  { label: "H2", style: "header-two" },
+  { label: "Blockquote", style: "blockquote" },
+  { label: "UL", style: "unordered-list-item" },
+  { label: "OL", style: "ordered-list-item" }
+];
+
+const BlockStyleControls = props => {
+  const { editorState } = props;
+  const selection = editorState.getSelection();
+  const blockType = editorState
+    .getCurrentContent()
+    .getBlockForKey(selection.getStartKey())
+    .getType();
+
+  return (
+    <div className="RichEditor-controls">
+      {BLOCK_TYPES.map(type => (
+        <StyleButton
+          key={type.label}
+          active={type.style === blockType}
+          label={type.label}
+          onToggle={props.onToggle}
+          style={type.style}
+        />
+      ))}
+    </div>
+  );
+};
+
+const INLINE_STYLES = [
+  { label: "Bold", style: "BOLD" },
+  { label: "Italic", style: "ITALIC" },
+  { label: "Underline", style: "UNDERLINE" }
+];
+
+const InlineStyleControls = props => {
+  const currentStyle = props.editorState.getCurrentInlineStyle();
+
+  return (
+    <div className="RichEditor-controls">
+      {INLINE_STYLES.map(type => (
+        <StyleButton
+          key={type.label}
+          active={currentStyle.has(type.style)}
+          label={type.label}
+          onToggle={props.onToggle}
+          style={type.style}
+        />
+      ))}
+    </div>
+  );
+};
+
 class StyleButton extends React.Component {
   constructor(props) {
     super(props);
@@ -114,6 +169,8 @@ class LinkEditorExample extends React.Component {
     this.removeLink = this._removeLink.bind(this);
     this.handleKeyCommand = this.handleKeyCommand.bind(this);
     this.toggleColor = toggledColor => this._toggleColor(toggledColor);
+    this.toggleBlockType = this._toggleBlockType.bind(this);
+    this.toggleInlineStyle = this._toggleInlineStyle.bind(this);
   }
 
   handleKeyCommand(command, editorState) {
@@ -230,6 +287,16 @@ class LinkEditorExample extends React.Component {
     this.onChange(nextEditorState);
   }
 
+  _toggleBlockType(blockType) {
+    const { editorState } = this.state;
+    this.onChange(RichUtils.toggleBlockType(editorState, blockType));
+  }
+
+  _toggleInlineStyle(inlineStyle) {
+    const { editorState } = this.state;
+    this.onChange(RichUtils.toggleInlineStyle(editorState, inlineStyle));
+  }
+
   render() {
     let urlInput;
     if (this.state.showURLInput) {
@@ -253,6 +320,14 @@ class LinkEditorExample extends React.Component {
     return (
       <div style={styles.root}>
         <div style={styles.buttons}>
+          <BlockStyleControls
+            editorState={editorState}
+            onToggle={this.toggleBlockType}
+          />
+          <InlineStyleControls
+            editorState={editorState}
+            onToggle={this.toggleInlineStyle}
+          />
           <ColorControls
             editorState={editorState}
             onToggle={this.toggleColor}
@@ -265,6 +340,7 @@ class LinkEditorExample extends React.Component {
         {urlInput}
         <div style={styles.editor} onClick={this.focus}>
           <Editor
+            className="RichEditor-editor"
             stripPastedStyles={true}
             customStyleMap={colorStyleMap}
             editorState={this.state.editorState}
