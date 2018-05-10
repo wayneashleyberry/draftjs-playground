@@ -5,8 +5,85 @@ import {
   CompositeDecorator,
   Editor,
   EditorState,
+  Modifier,
   RichUtils
 } from "draft-js";
+
+class StyleButton extends React.Component {
+  constructor(props) {
+    super(props);
+    this.onToggle = e => {
+      e.preventDefault();
+      this.props.onToggle(this.props.style);
+    };
+  }
+  render() {
+    let style;
+    if (this.props.active) {
+      style = { ...styles.styleButton, ...colorStyleMap[this.props.style] };
+    } else {
+      style = styles.styleButton;
+    }
+    return (
+      <span style={style} onMouseDown={this.onToggle}>
+        {this.props.label}
+      </span>
+    );
+  }
+}
+
+var COLORS = [
+  { label: "Red", style: "red" },
+  { label: "Orange", style: "orange" },
+  { label: "Yellow", style: "yellow" },
+  { label: "Green", style: "green" },
+  { label: "Blue", style: "blue" },
+  { label: "Indigo", style: "indigo" },
+  { label: "Violet", style: "violet" }
+];
+
+const ColorControls = props => {
+  var currentStyle = props.editorState.getCurrentInlineStyle();
+  return (
+    <div style={styles.controls}>
+      {COLORS.map(type => (
+        <StyleButton
+          key={type.style}
+          active={currentStyle.has(type.style)}
+          label={type.label}
+          onToggle={props.onToggle}
+          style={type.style}
+        />
+      ))}
+    </div>
+  );
+};
+
+// This object provides the styling information for our custom color
+// styles.
+const colorStyleMap = {
+  red: {
+    color: "rgba(255, 0, 0, 1.0)"
+  },
+  orange: {
+    color: "rgba(255, 127, 0, 1.0)"
+  },
+  yellow: {
+    color: "#f7c243"
+  },
+  green: {
+    color: "rgba(0, 180, 0, 1.0)"
+  },
+  blue: {
+    color: "rgba(0, 0, 255, 1.0)"
+  },
+  indigo: {
+    color: "rgba(75, 0, 130, 1.0)"
+  },
+  violet: {
+    color: "rgba(127, 0, 255, 1.0)"
+  }
+};
 
 class LinkEditorExample extends React.Component {
   constructor(props) {
@@ -36,6 +113,7 @@ class LinkEditorExample extends React.Component {
     this.onLinkInputKeyDown = this._onLinkInputKeyDown.bind(this);
     this.removeLink = this._removeLink.bind(this);
     this.handleKeyCommand = this.handleKeyCommand.bind(this);
+    this.toggleColor = toggledColor => this._toggleColor(toggledColor);
   }
 
   handleKeyCommand(command, editorState) {
@@ -120,6 +198,38 @@ class LinkEditorExample extends React.Component {
     }
   }
 
+  _toggleColor(toggledColor) {
+    const { editorState } = this.state;
+    const selection = editorState.getSelection();
+    // Let's just allow one color at a time. Turn off all active colors.
+    const nextContentState = Object.keys(colorStyleMap).reduce(
+      (contentState, color) => {
+        return Modifier.removeInlineStyle(contentState, selection, color);
+      },
+      editorState.getCurrentContent()
+    );
+    let nextEditorState = EditorState.push(
+      editorState,
+      nextContentState,
+      "change-inline-style"
+    );
+    const currentStyle = editorState.getCurrentInlineStyle();
+    // Unset style override for current color.
+    if (selection.isCollapsed()) {
+      nextEditorState = currentStyle.reduce((state, color) => {
+        return RichUtils.toggleInlineStyle(state, color);
+      }, nextEditorState);
+    }
+    // If the color is being toggled on, apply it.
+    if (!currentStyle.has(toggledColor)) {
+      nextEditorState = RichUtils.toggleInlineStyle(
+        nextEditorState,
+        toggledColor
+      );
+    }
+    this.onChange(nextEditorState);
+  }
+
   render() {
     let urlInput;
     if (this.state.showURLInput) {
@@ -137,13 +247,16 @@ class LinkEditorExample extends React.Component {
         </div>
       );
     }
+
+    const { editorState } = this.state;
+
     return (
       <div style={styles.root}>
-        <div style={{ marginBottom: 10 }}>
-          Select some text, then use the buttons to add or remove links on the
-          selected text.
-        </div>
         <div style={styles.buttons}>
+          <ColorControls
+            editorState={editorState}
+            onToggle={this.toggleColor}
+          />
           <button onMouseDown={this.promptForLink} style={{ marginRight: 10 }}>
             Add Link
           </button>
@@ -152,6 +265,8 @@ class LinkEditorExample extends React.Component {
         {urlInput}
         <div style={styles.editor} onClick={this.focus}>
           <Editor
+            stripPastedStyles={true}
+            customStyleMap={colorStyleMap}
             editorState={this.state.editorState}
             handleKeyCommand={this.handleKeyCommand}
             onChange={this.onChange}
@@ -168,6 +283,7 @@ class LinkEditorExample extends React.Component {
     );
   }
 }
+
 function findLinkEntities(contentBlock, callback, contentState) {
   contentBlock.findEntityRanges(character => {
     const entityKey = character.getEntity();
@@ -189,7 +305,7 @@ const Link = props => {
 
 const styles = {
   root: {
-    fontFamily: "'Georgia', serif",
+    fontFamily: "sans-serif",
     padding: 20,
     width: 600
   },
@@ -216,6 +332,18 @@ const styles = {
   link: {
     color: "#3b5998",
     textDecoration: "underline"
+  },
+  controls: {
+    fontFamily: "'Helvetica', sans-serif",
+    fontSize: 14,
+    marginBottom: 10,
+    userSelect: "none"
+  },
+  styleButton: {
+    color: "#999",
+    cursor: "pointer",
+    marginRight: 16,
+    padding: "2px 0"
   }
 };
 
